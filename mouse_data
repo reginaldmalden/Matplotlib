@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.stats as st
 
+
 # Study data files
 mouse_metadata_path = "C:/Users/regin/Desktop/vu-nsh-data-pt-06-2020-u-c/02-Homework/05-Matplotlib/Instructions/Pymaceuticals/data/Mouse_metadata.csv"
 study_results_path = "C:/Users/regin/Desktop/vu-nsh-data-pt-06-2020-u-c/02-Homework/05-Matplotlib/Instructions/Pymaceuticals/data/Study_results.csv"
@@ -13,18 +14,12 @@ study_results = pd.read_csv(study_results_path)
 # Combine the data into a single dataset
 complete_data= pd.merge(study_results, mouse_metadata, how="left", on="Mouse ID")
 
-complete_data.head()
+complete_data.head(20)
 
-
-len(complete_data["Mouse ID"].unique())
-
-duplicate_mouse_id=complete_data.loc[complete_data.duplicated(subset=['Mouse ID', 'Timepoint']),'Mouse ID'].unique()
-
-duplicate_mouse_id
 
 
 # Get all the data for the duplicate mouse ID. 
-duplicate_mouse_data = complete_data.loc[complete_data["Mouse ID"] == "g989"]
+duplicate_mouse_data = complete_data.loc[complete_data["Mouse ID"] == "o725"]
 
 duplicate_mouse_data
 
@@ -37,22 +32,19 @@ medians = clean_data.groupby('Drug Regimen').median()['Tumor Volume (mm3)']
 variances = clean_data.groupby('Drug Regimen').var()['Tumor Volume (mm3)']
 sds = clean_data.groupby('Drug Regimen').std()['Tumor Volume (mm3)']
 sems = clean_data.groupby('Drug Regimen').sem()['Tumor Volume (mm3)']
-summary_table = pd.DataFrame({"Mean Tumor Volume":means,
-                              "Median Tumor Volume":medians,
-                              "Tumor Volume Variance":variances,
-                              "Tumor Volume Std. Dev.":sds,
-                              "Tumor Volume Std. Err.":sems})
+complete_table = pd.DataFrame({"Mean Tumor Volume":means,"Median Tumor Volume":medians, "Tumor Volume Variance":variances,
+                              "Tumor Volume Std. Dev.":sds, "Tumor Volume Std. Err.":sems})
 
-summary_table
+complete_table
 
 
 # Generate a bar plot showing the total number of mice for each treatment throughout the course of the study
 
 counts = clean_data['Drug Regimen'].value_counts()
 counts.plot(kind="bar")
-plt.xlabel("Drug Regimen")
+plt.xlabel("Regimen")
 plt.xticks(rotation=90)
-plt.ylabel("Number of Data Points")
+plt.ylabel("Total Volume")
 plt.show()
 
 
@@ -60,75 +52,33 @@ plt.show()
 
 counts = clean_data['Drug Regimen'].value_counts()
 plt.bar(counts.index.values,counts.values)
-plt.xlabel("Drug Regimen")
+plt.xlabel("Regimen")
 plt.xticks(rotation=90)
-plt.ylabel("Number of Data Points")
+plt.ylabel("Total Volume")
+plt.grid
 plt.show()
 
 
 
 counts = clean_data.Sex.value_counts()
-counts.plot(kind="pie",autopct='%1.1f%%')
+counts.plot
 plt.show()
 
 
-# Generate a pie plot showing the distribution of female versus male mice using pyplot
+# Generate a pie plot showing gender
 counts = clean_data.Sex.value_counts()
-plt.pie(counts.values,labels=counts.index.values,autopct='%1.1f%%')
-plt.ylabel("Sex")
+plt.pie(counts.values,labels=counts.index.values)
+plt.ylabel("Gender")
 plt.show()
-
-
-# Calculate the final tumor volume of each mouse across four of the treatment regimens:  
-# Capomulin, Ramicane, Infubinol, and Ceftamin
-
-# Start by getting the last (greatest) timepoint for each mouse
-max_tumor = clean_data.groupby(["Mouse ID"])['Timepoint'].max()
-max_tumor = max_tumor.reset_index()
-
-# Merge this group df with the original dataframe to get the tumor volume at the last timepoint
-merged_data = max_tumor.merge(clean_data,on=['Mouse ID','Timepoint'],how="left")
-
-
-# Put treatments into a list for for loop (and later for plot labels)
-treatment_list = ["Capomulin", "Ramicane", "Infubinol", "Ceftamin"]
-
-# Create empty list to fill with tumor vol data (for plotting)
-tumor_vol_list = []
-
-# Calculate the IQR and quantitatively determine if there are any potential outliers. 
-for drug in treatment_list:
-    
-    # Locate the rows which contain mice on each drug and get the tumor volumes
-    final_tumor_vol = merged_data.loc[merged_data["Drug Regimen"] == drug, 'Tumor Volume (mm3)']
-    
-    # add subset 
-    tumor_vol_list.append(final_tumor_vol)
-    
-    # Determine outliers using upper and lower bounds
-    quartiles = final_tumor_vol.quantile([.25,.5,.75])
-    lowerq = quartiles[0.25]
-    upperq = quartiles[0.75]
-    iqr = upperq-lowerq
-    lower_bound = lowerq - (1.5*iqr)
-    upper_bound = upperq + (1.5*iqr)
-    outliers = final_tumor_vol.loc[(final_tumor_vol < lower_bound) | (final_tumor_vol > upper_bound)]
-    print(f"{drug}'s potential outliers: {outliers}")
-    
-    
-     # Generate a box plot of the final tumor volume of each mouse across four regimens of interest
-orange_out = dict(markerfacecolor='red',markersize=12)
-plt.boxplot(tumor_vol_list, labels = treatment_list,flierprops=orange_out)
-plt.ylabel('Final Tumor Volume (mm3)')
-plt.show()  
 
 
 #Generate a line plot of time point versus tumor volume for a mouse
 
-capomulin_table = clean_data.loc[clean_data['Drug Regimen'] == "Capomulin"]
-mousedata = capomulin_table.loc[capomulin_table['Mouse ID']== 'l509']
+naftisol_table = clean_data.loc[clean_data['Drug Regimen'] == "Naftisol"]
+mousedata = naftisol_table.loc[naftisol_table['Mouse ID']== 'o725']
 plt.plot(mousedata['Timepoint'],mousedata['Tumor Volume (mm3)'])
-plt.xlabel('Timepoint (days)')
-plt.ylabel('Tumor Volume (mm3)')
-plt.title('Capomulin treatment of mouse l509')
+plt.xlabel('Days')
+plt.ylabel('Tumor Volume')
+plt.title('Naftisol treatment of mouse o725')
+plt.grid
 plt.show()
